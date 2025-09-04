@@ -1,0 +1,190 @@
+:root {
+  --bg: #f4f6f9;
+  --panel: #ffffff;
+  --text: #1e1f22;
+  --muted: #8a8f98;
+  --accent: #4caf50;
+  --accent-2: #6c63ff;
+  --danger: #ff4d4f;
+  --shadow: 0 10px 30px rgba(0,0,0,.08);
+  --radius: 14px;
+  --speed: 240ms;
+}
+
+/* 🌙 Dark mode */
+body[data-theme="dark"] {
+  --bg: #0f1218;
+  --panel: #151a22;
+  --text: #e8ecf1;
+  --muted: #9aa3ad;
+  --accent: #55d187;
+  --accent-2: #8c7cff;
+  --danger: #ff6b6e;
+  --shadow: 0 12px 32px rgba(0,0,0,.45);
+}
+
+/* 🌈 Fond animé */
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  background: linear-gradient(-45deg, #6c63ff, #4cafef, #55d187, #ff6b6e);
+  background-size: 400% 400%;
+  animation: gradientShift 15s ease infinite;
+  color: var(--text);
+  display: grid;
+  place-items: center;
+  transition: background var(--speed) ease, color var(--speed) ease;
+  overflow-x: hidden;
+  min-height: 100vh;
+}
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Confetti canvas */
+#confetti {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* App container */
+.app {
+  position: relative;
+  z-index: 2;
+  width: min(720px, 92vw);
+  background: var(--panel);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 20px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+/* Topbar */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+.neon {
+  font-weight: 800;
+  margin: 0;
+  text-shadow: 0 0 12px rgba(108,99,255,.35), 0 0 22px rgba(108,99,255,.25);
+}
+.neon:hover { text-shadow: 0 0 18px rgba(108,99,255,.55); }
+
+/* Input */
+.input-area {
+  display: flex;
+  gap: 8px;
+  margin: 14px 0 10px;
+}
+input[type="text"] {
+  flex: 1;
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid #ccc;
+  font-size: 1rem;
+}
+button {
+  border: none;
+  border-radius: 10px;
+  padding: 10px 14px;
+  background: var(--accent);
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all .2s;
+}
+button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 12px var(--accent-2);
+}
+
+/* List */
+.list {
+  list-style: none;
+  padding: 0;
+  margin-top: 10px;
+  display: grid;
+  gap: 10px;
+}
+.item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--panel);
+  border-radius: 12px;
+  padding: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,.08);
+  animation: fadeIn .4s ease;
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.9); }
+  to   { opacity: 1; transform: scale(1); }
+}
+.item.done { background: #d1ffd1; }
+
+/* Animations pour les tâches */
+.item.enter { animation: pop .4s ease; }
+@keyframes pop {
+  0% { transform: scale(0.8); opacity: 0; }
+  80% { transform: scale(1.05); opacity: 1; }
+  100% { transform: scale(1); }
+}
+.item.exit { animation: exit .35s forwards; }
+@keyframes exit {
+  to { opacity: 0; transform: scale(0.7) rotate(-8deg); }
+}
+
+/* Tâches prioritaires */
+.item.priority {
+  border: 2px solid gold;
+  animation: glowPulse 1.5s infinite alternate;
+}
+@keyframes glowPulse {
+  from { box-shadow: 0 0 8px gold; }
+  to   { box-shadow: 0 0 20px gold; }
+}
+
+/* Strike line */
+.strike {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: #666;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform .3s;
+}
+.item.done .strike { transform: scaleX(1); }
+
+/* Toast */
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: -80px;
+  transform: translateX(-50%);
+  background: rgba(0,0,0,0.8);
+  color: white;
+  padding: 12px 16px;
+  border-radius: 10px;
+  transition: all .35s;
+  opacity: 0;
+  z-index: 99;
+}
+.toast.show { bottom: 30px; opacity: 1; }
+
+/* Mobile responsive */
+@media (max-width: 600px) {
+  .app { padding: 14px; }
+  .input-area { flex-direction: column; }
+  button { width: 100%; }
+}
