@@ -1,287 +1,53 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <title>To-Do List Deluxe</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f4f6f9;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      margin: 0;
-      transition: background 0.5s, color 0.5s;
-    }
-    body.dark {
-      background: #1c1c1c;
-      color: #eee;
-    }
-    .app {
-      background: white;
-      padding: 20px;
-      border-radius: 10px;
-      width: 380px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-      transition: background 0.5s, color 0.5s;
-    }
-    body.dark .app {
-      background: #2a2a2a;
-      color: #eee;
-    }
-    h1 {
-      text-align: center;
-      margin-bottom: 15px;
-    }
-    .input-area {
-      display: flex;
-      margin-bottom: 15px;
-    }
-    input {
-      flex: 1;
-      padding: 8px;
-      border: 1px solid #ccc;
-      border-radius: 5px 0 0 5px;
-    }
-    button {
-      padding: 8px 12px;
-      border: none;
-      background: #4CAF50;
-      color: white;
-      border-radius: 0 5px 5px 0;
-      cursor: pointer;
-      transition: transform 0.2s, background 0.3s;
-    }
-    button:hover {
-      transform: scale(1.05);
-      background: #45a049;
-    }
-    ul {
-      list-style: none;
-      padding: 0;
-    }
-    li {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background: #f9f9f9;
-      margin-bottom: 8px;
-      padding: 8px;
-      border-radius: 5px;
-      opacity: 0;
-      transform: translateY(10px);
-      animation: fadeIn 0.4s forwards;
-    }
-    li.done {
-      text-decoration: line-through;
-      color: gray;
-      background: #d6ffd6;
-      transition: background 0.4s;
-    }
-    li button {
-      background: red;
-      border: none;
-      color: white;
-      padding: 5px 8px;
-      border-radius: 5px;
-      cursor: pointer;
-      transition: transform 0.2s;
-    }
-    li button:hover {
-      transform: rotate(20deg) scale(1.1);
-    }
-    @keyframes fadeIn {
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-    @keyframes fadeOut {
-      to {
-        opacity: 0;
-        transform: translateX(50px);
-      }
-    }
-    .progress {
-      margin: 15px 0;
-      height: 10px;
-      background: #ddd;
-      border-radius: 5px;
-      overflow: hidden;
-    }
-    .progress-bar {
-      height: 100%;
-      width: 0%;
-      background: #4CAF50;
-      transition: width 0.5s;
-    }
-    .theme-toggle {
-      margin-top: 10px;
-      text-align: center;
-    }
-    .success {
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      background: #4CAF50;
-      color: white;
-      padding: 10px 15px;
-      border-radius: 5px;
-      opacity: 0;
-      transform: translateY(-20px);
-      animation: popup 0.6s forwards;
-    }
-    @keyframes popup {
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-    .shake {
-      animation: shake 0.3s;
-    }
-    @keyframes shake {
-      0% { transform: translateX(0); }
-      25% { transform: translateX(-5px); }
-      50% { transform: translateX(5px); }
-      75% { transform: translateX(-5px); }
-      100% { transform: translateX(0); }
-    }
-  </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>To-Do List Animée</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
-<body>
+<body data-theme="light">
+  <canvas id="confetti"></canvas>
+
   <div class="app">
-    <h1>📝 To-Do List Deluxe</h1>
-    <div class="input-area">
-      <input type="text" id="taskInput" placeholder="Ajouter une tâche...">
-      <button onclick="addTask()">Ajouter</button>
-    </div>
-    <div class="progress">
+    <header class="topbar">
+      <h1 class="neon">📝 Ma To-Do List</h1>
+      <div class="actions">
+        <button id="themeBtn" title="Basculer thème">🌓</button>
+        <button id="clearAllBtn" title="Tout supprimer">🗑️</button>
+      </div>
+    </header>
+
+    <div class="progress-wrap">
       <div class="progress-bar" id="progressBar"></div>
+      <div class="progress-label"><span id="countLeft">0</span> restantes</div>
     </div>
-    <ul id="taskList"></ul>
-    <div class="theme-toggle">
-      <button onclick="toggleTheme()">🌙 / ☀️</button>
-      <button onclick="clearAll()">🗑️ Tout supprimer</button>
+
+    <div class="input-area">
+      <input id="taskInput" type="text" placeholder="Ajouter une tâche…" />
+      <button id="addBtn">Ajouter</button>
     </div>
+
+    <ul id="taskList" class="list"></ul>
   </div>
 
-  <script>
-    const taskInput = document.getElementById("taskInput");
-    const taskList = document.getElementById("taskList");
-    const progressBar = document.getElementById("progressBar");
+  <div id="toast" class="toast" aria-hidden="true"></div>
 
-    // Charger depuis localStorage
-    window.onload = () => {
-      const saved = JSON.parse(localStorage.getItem("tasks")) || [];
-      saved.forEach(obj => addTask(obj.text, false, obj.done));
-      updateProgress();
-    };
+  <template id="taskTemplate">
+    <li class="item enter">
+      <label class="label">
+        <input type="checkbox" class="check" />
+        <span class="text"></span>
+        <span class="strike"></span>
+      </label>
+      <div class="item-actions">
+        <button class="priority" title="Priorité">⭐</button>
+        <button class="edit" title="Modifier">✏️</button>
+        <button class="del" title="Supprimer">❌</button>
+      </div>
+    </li>
+  </template>
 
-    function addTask(taskText = taskInput.value, save = true, done = false) {
-      if (taskText === "") {
-        taskInput.classList.add("shake");
-        setTimeout(() => taskInput.classList.remove("shake"), 300);
-        return;
-      }
-
-      const li = document.createElement("li");
-      li.textContent = taskText;
-
-      if (done) li.classList.add("done");
-
-      li.addEventListener("click", () => {
-        li.classList.toggle("done");
-        saveTasks();
-        updateProgress();
-        checkSuccess();
-      });
-
-      const delBtn = document.createElement("button");
-      delBtn.textContent = "X";
-      delBtn.onclick = () => {
-        li.style.animation = "fadeOut 0.4s forwards";
-        setTimeout(() => {
-          li.remove();
-          saveTasks();
-          updateProgress();
-        }, 400);
-      };
-
-      li.appendChild(delBtn);
-      taskList.appendChild(li);
-
-      if (save) saveTasks();
-      updateProgress();
-      checkSuccess();
-
-      taskInput.value = "";
-    }
-
-    function saveTasks() {
-      const tasks = [];
-      document.querySelectorAll("#taskList li").forEach(li => {
-        tasks.push({ text: li.firstChild.textContent, done: li.classList.contains("done") });
-      });
-      localStorage.setItem("tasks", JSON.stringify(tasks));
-    }
-
-    function clearAll() {
-      taskList.innerHTML = "";
-      saveTasks();
-      updateProgress();
-    }
-
-    function updateProgress() {
-      const all = document.querySelectorAll("#taskList li").length;
-      const done = document.querySelectorAll("#taskList li.done").length;
-      const percent = all ? (done / all) * 100 : 0;
-      progressBar.style.width = percent + "%";
-    }
-
-    function toggleTheme() {
-      document.body.classList.toggle("dark");
-    }
-
-    function checkSuccess() {
-      const all = document.querySelectorAll("#taskList li").length;
-      const done = document.querySelectorAll("#taskList li.done").length;
-      if (all > 0 && all === done) {
-        showSuccess("🎉 Bravo ! Toutes les tâches sont finies !");
-        launchConfetti();
-      }
-    }
-
-    function showSuccess(msg) {
-      const div = document.createElement("div");
-      div.className = "success";
-      div.textContent = msg;
-      document.body.appendChild(div);
-      setTimeout(() => div.remove(), 2000);
-    }
-
-    // Mini confetti
-    function launchConfetti() {
-      for (let i = 0; i < 30; i++) {
-        const conf = document.createElement("div");
-        conf.textContent = "🎉";
-        conf.style.position = "fixed";
-        conf.style.left = Math.random() * window.innerWidth + "px";
-        conf.style.top = "-20px";
-        conf.style.fontSize = "20px";
-        conf.style.animation = `drop ${2 + Math.random()}s linear forwards`;
-        document.body.appendChild(conf);
-        setTimeout(() => conf.remove(), 4000);
-      }
-    }
-    const style = document.createElement("style");
-    style.innerHTML = `
-      @keyframes drop {
-        to { transform: translateY(${window.innerHeight + 50}px); }
-      }
-    `;
-    document.head.appendChild(style);
-  </script>
+  <script src="script.js"></script>
 </body>
 </html>
